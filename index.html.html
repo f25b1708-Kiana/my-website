@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Integration Calculator</title>
+    <script src="[cdnjs.cloudflare.com](https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.0/math.min.js)"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            box-sizing: border-box;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: bold;
+        }
+        .input-group input[type="text"],
+        .input-group input[type="number"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #result {
+            margin-top: 25px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #e9ecef;
+            text-align: center;
+            font-size: 1.1em;
+            color: #333;
+            font-weight: bold;
+        }
+        #error {
+            margin-top: 15px;
+            color: #dc3545;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Simple Integration Calculator</h1>
+
+        <div class="input-group">
+            <label for="functionInput">Function f(x):</label>
+            <input type="text" id="functionInput" value="x^2" placeholder="e.g., x^2, sin(x), 2*x + 3">
+        </div>
+
+        <div class="input-group">
+            <label for="lowerBound">Lower Bound (a):</label>
+            <input type="number" id="lowerBound" value="0" step="any">
+        </div>
+
+        <div class="input-group">
+            <label for="upperBound">Upper Bound (b):</label>
+            <input type="number" id="upperBound" value="1" step="any">
+        </div>
+
+        <button onclick="calculateIntegral()">Calculate Integral</button>
+
+        <div id="result">
+            Result: --
+        </div>
+        <div id="error"></div>
+    </div>
+
+    <script>
+        function calculateIntegral() {
+            const functionString = document.getElementById('functionInput').value;
+            const lowerBound = parseFloat(document.getElementById('lowerBound').value);
+            const upperBound = parseFloat(document.getElementById('upperBound').value);
+            const resultElement = document.getElementById('result');
+            const errorElement = document.getElementById('error');
+
+            resultElement.innerText = "Result: --";
+            errorElement.innerText = "";
+
+            if (isNaN(lowerBound) || isNaN(upperBound)) {
+                errorElement.innerText = "Please enter valid numbers for both bounds.";
+                return;
+            }
+
+            if (lowerBound >= upperBound) {
+                errorElement.innerText = "The lower bound must be less than the upper bound.";
+                return;
+            }
+
+            try {
+                // Compile the expression
+                const parser = math.parser();
+                const compiledFunction = parser.evaluate(`f(x) = ${functionString}`);
+
+                 // Simple Trapezoidal Rule for numerical integration
+                const numSteps = 10000; // Number of trapezoids
+                const h = (upperBound - lowerBound) / numSteps;
+                let integral = 0;
+
+                for (let i = 0; i < numSteps; i++) {
+                    const x0 = lowerBound + i * h;
+                    const x1 = lowerBound + (i + 1) * h;
+                    const y0 = compiledFunction.evaluate({ x: x0 });
+                    const y1 = compiledFunction.evaluate({ x: x1 });
+                    integral += (y0 + y1) * h / 2;
+                }
+
+                resultElement.innerText = `Result: ${integral.toFixed(6)}`; // Display with 6 decimal places
+
+            } catch (e) {
+                errorElement.innerText = `Error parsing function: ${e.message}. Please check your syntax.`;
+            }
+        }
+    </script>
+</body>
+</html>
